@@ -67,6 +67,22 @@ describe("checkToolCall", () => {
       expect(checkToolCall("bash", { command: cmd }, root), cmd).toMatch(/Bloqueado/);
     }
   });
+  it("bloquea la herramienta de comandos de OpenCode 2.x, que se llama `shell` y no `bash`", () => {
+    for (const cmd of ["cat secrets/api-key.txt", "cat .env", "grep -n KEY ./.env.local", "cp data/library.db /tmp"]) {
+      expect(checkToolCall("shell", { command: cmd }, root), cmd).toMatch(/Bloqueado/);
+    }
+    expect(checkToolCall("shell", { command: "npm test && cat .env.example" }, root)).toBeNull();
+  });
+  it("bloquea un comando aunque la herramienta tenga otro nombre (se detecta por el argumento `command`)", () => {
+    expect(checkToolCall("terminal", { command: "cat secrets/api-key.txt" }, root)).toMatch(/Bloqueado/);
+    expect(checkToolCall("exec", { command: "ls src" }, root)).toBeNull();
+  });
+  it("revisa cualquier campo con nombre de ruta, no solo los conocidos, y también listas de rutas", () => {
+    expect(checkToolCall("write", { path: ".env", content: "X=1" }, root)).toMatch(/Bloqueado/);
+    expect(checkToolCall("list", { directory: "secrets" }, root)).toMatch(/Bloqueado/);
+    expect(checkToolCall("read", { paths: ["src/app/page.tsx", ".env.local"] }, root)).toMatch(/Bloqueado/);
+    expect(checkToolCall("write", { path: "src/app/page.tsx", content: "contiene la palabra .env" }, root)).toBeNull();
+  });
   it("permite leer .env.example (plantilla sin secretos) pero no comodines que abarquen .env reales", () => {
     expect(checkToolCall("read", { filePath: ".env.example" }, root)).toBeNull();
     expect(checkToolCall("Read", { file_path: join(root, ".env.example") }, root)).toBeNull();

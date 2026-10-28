@@ -30,8 +30,11 @@ export const ToolArgsSchema = z.looseObject({
 });
 export type ToolArgs = z.infer<typeof ToolArgsSchema>;
 
-/** Campos de {@link ToolArgs} que pueden contener una ruta o un patrón. */
-const PATH_KEYS = ["filePath", "file_path", "path", "pattern", "include", "glob", "notebook_path"] as const;
+/** Nombres de campo que sugieren una ruta o un patrón (`path`, `filePath`, `file_path`, `directory`, `glob`…). */
+const PATH_LIKE_KEY = /path|file|dir|glob|pattern|include|cwd/i;
+
+/** Nombres con los que los harness llaman a la herramienta de comandos (en minúsculas). */
+const SHELL_TOOLS: readonly string[] = ["bash", "shell"];
 
 /** Rutas relativas a la raíz del proyecto. Prefijo con "/" final = carpeta completa. */
 export const FORBIDDEN_DIRS = ["secrets/", "data/", ".git/"] as const;
@@ -104,21 +107,22 @@ export function checkToolCall(tool: string, args: ToolArgs, root: string): strin
     `Bloqueado por la política del proyecto: '${what}' está en una zona prohibida (secretos, datos locales o .git). ` +
     `No intentes leerla por otro medio; si la necesitas, pídele permiso explícito a la persona.`;
 
-  if (name === "bash") {
+  // Comandos de shell. Cada harness llama distinto a la herramienta (`bash` en Claude Code y en OpenCode 1.x,
+  // `shell` en OpenCode 2.x), así que además del nombre se detecta por el argumento `command`.
+  const isShellTool = SHELL_TOOLS.includes(name);
+  if (isShellTool || args.command !== undefined) {
     const hit = shellTokens(args.command ?? "").find((t) => isForbiddenPath(t, root));
     if (hit) {
       return deny(hit);
     }
-    return null;
+    if (isShellTool) {
+      return null;
+    }
   }
 
   // Herramientas de archivos (read, edit, write, glob, grep, list; en Claude Code: Read, Edit, …):
   // revisamos cualquier argumento de texto con aspecto de ruta o patrón.
-  for (const key of PATH_KEYS) {
-    const v = args[key];
-    if (v === undefined) {
-      continue;
-    }
+  for (const v of pathCandidates(args)) {
     // Un patrón como "secrets/**" o "**/.env*" también cuenta: probamos la ruta tal cual y sin comodines finales.
     const literal = v.replace(/\*+.*$/, "").replace(/\/+$/, "");
     if (isForbiddenPath(v, root) || (literal && isForbiddenPath(literal, root)) || /(^|\/)\.env(\.)?\*/.test(v)) {
@@ -126,4 +130,27 @@ export function checkToolCall(tool: string, args: ToolArgs, root: string): strin
     }
   }
   return null;
+}
+
+/**
+ * Textos de los argumentos que pueden ser una ruta o un patrón: todo campo cuyo nombre lo sugiere
+ * (`path`, `filePath`, `file_path`, `directory`, `pattern`, `glob`…), sea texto o lista de textos.
+ * Así el guard no depende de cómo llame cada versión de cada harness a sus campos.
+ */
+function pathCandidates(args: ToolArgs): string[] {
+  const found: string[] = [];
+  for (const [key, value] of Object.entries(args)) {
+    if (!PATH_LIKE_KEY.test(key)) {
+      continue;
+    }
+    if (typeof value === "string") {
+      found.push(value);
+      continue;
+    }
+    const list = z.array(z.string()).safeParse(value);
+    if (list.success) {
+      found.push(...list.data);
+    }
+  }
+  return found;
 }
