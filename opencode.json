@@ -1,0 +1,32 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    }
+  },
+  "tools": {
+    "context7_*": false
+  },
+  "permission": {
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow",
+      "secrets/**": "deny",
+      "data/**": "deny"
+    },
+    "edit": {
+      "*": "ask",
+      "secrets/**": "deny",
+      ".env*": "deny"
+    },
+    "skill": {
+      "*": "allow"
+    }
+  }
+}

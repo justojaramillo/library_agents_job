@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Biblioteca de préstamos
 
-## Getting Started
+Proyecto del curso de Tendencias (desarrollo con agentes de IA). Una biblioteca de préstamos de libros que **construyes tú, feature por feature, dirigiendo a un equipo de agentes** (orquestador, backend, frontend, pruebas y seguridad). Next.js App Router (Cache Components), TypeScript, Tailwind, Firebase (Authentication y Firestore), Vercel Blob, Zod y Vitest.
 
-First, run the development server:
+El repositorio trae el método, las reglas y las puertas de calidad. **No trae ninguna feature, ninguna especificación ni ninguna regla de negocio**: tú las decides respondiendo las preguntas que el agente te haga al escribir cada especificación.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Empieza aquí
+1. Lee `docs/empezar.md` (requisitos, Firebase, archivo de entorno y el primer mensaje).
+2. `npm install` y `npm run check` (debe quedar en verde antes de empezar).
+3. Abre un harness en esta carpeta: `claude` (Claude Code) o `opencode`.
+
+## Comandos
+| Comando | Qué hace |
+| --- | --- |
+| `npm run dev` | Servidor de desarrollo en <http://localhost:3000> |
+| `npm run check` | Formato + lint + tipos + pruebas (definición de «terminado») |
+| `npm run check:full` | Lo anterior más `npm run build` |
+| `npm run format` | Aplica el formato (Biome, solo formateador) |
+| `npm run lint` | Reglas de código y fronteras de la arquitectura (ESLint) |
+| `npm test` | Pruebas (Vitest) |
+
+## Dónde está qué
+```
+AGENTS.md, CLAUDE.md     Reglas para los agentes (lo primero que leen)
+docs/                    features.md (la lista), empezar.md, progreso.md, architecture.md, frontend-rules.md,
+                         adr/ (decisiones), specs/ (las escribes tú, feature a feature), handoffs/ (notas de entrega)
+app/                     Todo el código (hoy solo la página base y los estilos con la paleta)
+tests/project/           Pruebas del proyecto: guard, agentes, estilo de contratos y contraste de la paleta
+.claude/ .opencode/ .agents/   Agentes, skills y el guard que bloquea .env, data/ y secrets/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Cómo se trabaja
+1. Eliges la siguiente feature de `docs/features.md`.
+2. El agente escribe su especificación (`write-spec`), **te hace las preguntas abiertas** y la dejas en *Aprobada* tú, no el agente.
+3. El orquestador fija el contrato y delega por zonas (`feature-workflow`); `npm run check` en verde.
+4. `security` revisa en solo lectura; se registra la nota de entrega y se actualiza `docs/progreso.md`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Las reglas de código están en `AGENTS.md` y las de interfaz en `docs/frontend-rules.md`.

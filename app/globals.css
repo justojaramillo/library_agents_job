@@ -1,26 +1,102 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Tokens de la paleta azul y blanco y breakpoints (docs/frontend-rules.md, secciones 1 y 3). */
+@theme {
+  --breakpoint-*: initial;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+
+  --color-*: initial;
+  --color-surface: #ffffff;
+  --color-surface-alt: #eff6ff;
+  --color-surface-strong: #dbeafe;
+  --color-ink: #0f172a;
+  --color-ink-muted: #475569;
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-primary-strong: #1e3a8a;
+  --color-primary-deep: #172554;
+  --color-line: #bfdbfe;
+  --color-control-border: #64748b;
+  --color-danger: #b91c1c;
+  --color-success: #15803d;
+  --color-warning: #92400e;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    font-size: 100%;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-primary-hover);
+  }
+
+  /* Foco visible global (WCAG 2.4.7): 3 px, separación de 2 px. */
+  :focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Sobre fondos oscuros el foco es blanco. */
+  header :focus-visible,
+  footer :focus-visible {
+    outline-color: var(--color-surface);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Enlace «Saltar al contenido»: oculto hasta que recibe el foco (WCAG 2.4.1). */
+  .skip-link {
+    position: absolute;
+    left: 0.5rem;
+    top: 0.5rem;
+    z-index: 50;
+    padding: 0.75rem 1rem;
+    background-color: var(--color-surface);
+    color: var(--color-primary-strong);
+    font-weight: 600;
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+    outline-color: var(--color-primary);
+  }
+}
+
+/* F29 · El lector no se imprime: sale solo el aviso (el texto del libro nunca va a papel). */
+@media print {
+  [data-reader-root],
+  [data-reader-overlay] {
+    display: none !important;
+  }
+
+  [data-reader-print-notice] {
+    display: block !important;
+  }
 }

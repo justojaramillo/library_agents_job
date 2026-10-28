@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# datos locales (exportaciones del emulador) y secretos: no se suben a git
+!.env.example
+/data/
+/secrets/
